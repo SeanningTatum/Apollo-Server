@@ -8,8 +8,7 @@ environments, see the
 
 ## Running locally
 
-Refer to the [appengine/README.md](../../appengine/README.md) file for
-instructions on running locally.
+nodemon or npm start
 
 ## Send an echo request
 

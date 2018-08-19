@@ -6,6 +6,10 @@ const typeDefs = gql`
     "A simple type for getting started!"
     hello: String
   }
+
+  type Service {
+    type: String!
+  }
 `;
 
 // A map of functions which return data for the schema.
