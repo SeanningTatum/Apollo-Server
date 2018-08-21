@@ -1,4 +1,4 @@
-const { ApolloServer, gql } = require('apollo-server');
+const { ApolloServer, gql, ForbiddenError, PubSub } = require('apollo-server');
 const admin = require('firebase-admin')
 const firebase = require('firebase')
 const token = require('./token')
@@ -9,21 +9,37 @@ admin.initializeApp({
 });
 
 const context = async ({req}) => {
-
+  
   try {
     const decodedToken = await admin.auth().verifyIdToken(token)
-    console.log(decodedToken)
-  } catch (error) {
-    console.error(error)
-  }
+    const { name, email } = decodedToken
+    return { userDetails: {name, email} }
 
+  } catch (error) {
+    return { userDetails: {user: null, email: null} }
+  }
 }
+
 
 // The GraphQL schema
 const typeDefs = gql`
+
+  type Subscription {
+    testAdded: Test
+  }
+
   type Query {
     "A simple type for getting started!"
     hello: String
+    tests: [Test]
+  }
+
+  type Mutation {
+    addTest(test: String): Test
+  }
+
+  type Test {
+    test: String
   }
 
   type Service {
@@ -31,13 +47,36 @@ const typeDefs = gql`
   }
 `;
 
+const tests = []
+const pubsub = new PubSub()
+const TEST_ADDED = 'TEST_ADDED'
 // A map of functions which return data for the schema.
 const resolvers = {
+  Subscription: {
+    testAdded: {
+      subscribe: () => pubsub.asyncIterator([TEST_ADDED])
+    }
+  },
+
+  Mutation: {
+    addTest: (_, args) => {
+      pubsub.publish(TEST_ADDED, {testAdded: args})
+      return tests.push(args.test)
+    } 
+  },
+
   Query: {
     hello: (parent, args, context) => {
-      // console.log(context)
-      return 'world'
-    }
+      console.log(context)
+      const { name, email } = context.userDetails
+      if (name && email) {
+        return `${name} ${email}`
+      } else {
+        return 'no name or email!'
+      }
+    },
+
+    tests: () => tests
   }
 };
 
