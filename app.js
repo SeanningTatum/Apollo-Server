@@ -1,6 +1,5 @@
 const { ApolloServer, gql, ForbiddenError, PubSub } = require('apollo-server');
 const admin = require('firebase-admin')
-const firebase = require('firebase')
 const token = require('./token')
 const serviceAccount = require('./serviceAccount.json');
 
