@@ -25,7 +25,7 @@ const context = async ({req}) => {
 const typeDefs = gql`
 
   type Subscription {
-    testAdded: Test
+    testAdded: [Test]
   }
 
   type Query {
@@ -60,8 +60,9 @@ const resolvers = {
 
   Mutation: {
     addTest: (_, args) => {
-      pubsub.publish(TEST_ADDED, {testAdded: args})
-      return tests.push(args.test)
+      tests.push({test: args.test})
+      pubsub.publish(TEST_ADDED, {testAdded: tests})
+      return args.test
     } 
   },
 
